@@ -4,7 +4,13 @@ covafillr: Local Polynomial Regression of State Dependent Covariates in State-Sp
 Installing
 ----------
 
-The `R` package can be installed with
+covafillr version can be installed from CRAN with
+
+``` r
+install.packages("covafillr")
+```
+
+The development version of covafillr can be installed with
 
 ``` r
 devtools::install_github("calbertsen/covafillr")
@@ -12,7 +18,7 @@ devtools::install_github("calbertsen/covafillr")
 
 ### Installing with JAGS
 
-To use `covafillr` with [`JAGS`](http://mcmc-jags.sourceforge.net/), JAGS must be installed before the `covafillr` package.
+To use `covafillr` with [`JAGS`](http://mcmc-jags.sourceforge.net/), JAGS must be installed before the `covafillr` package, and the package must be installed using the same compiler as JAGS is installed with.
 
 On Unix(-like) systems, `pkg-config` is used to find the relevant paths to compile `covafillr` against `JAGS`, such as
 
@@ -24,13 +30,19 @@ pkg-config --libs jags
     ## -I/usr/local/include/JAGS 
     ## -L/usr/local/lib -ljags
 
+The package will only be installed with the JAGS module if the configure argument `--with-jags` is given.
+
 On Windows, the `R` package `rjags` is used to find the paths. `covafillr` can be installed without using `rjags` by setting a system variable `JAGS_ROOT` to the folder where `JAGS` is installed, e.g., by running
 
 ``` r
 Sys.setenv(JAGS_ROOT='C:/Program Files/JAGS/JAGS-4.1.0')
 ```
 
-before installation.
+before installation. Similar to Unix(-like) systems, the package is only installed with the JAGS module if the system variable `USE_JAGS` is set, e.g., by running
+
+``` r
+Sys.setenv(USE_JAGS='yes')
+```
 
 Simple examples
 ---------------
@@ -40,10 +52,9 @@ Note that more examples are available in the inst/examples folder.
 ### Using from R
 
 ``` r
+library(methods)
 library(covafillr)
 ```
-
-    ## Loading required package: methods
 
 The package can be used from `R` to do local polynomial regression and a search tree approximation of local polynomial regression. Both are implemented with reference classes.
 
@@ -52,7 +63,7 @@ The package can be used from `R` to do local polynomial regression and a search 
 The reference class for local polynomial regression is called `covafill`.
 
 ``` r
-getRefClass('covafill')
+methods::getRefClass('covafill')
 ```
 
     ## Generator for class "covafill":
@@ -67,9 +78,9 @@ getRefClass('covafill')
     ## Class Methods: 
     ##      "import", "getDegree", ".objectParent", "setBandwith", "residuals", 
     ##      "usingMethods", "show", "getClass", "untrace", "export", 
-    ##      "initialize", ".objectPackage", "callSuper", "getDim", "copy", 
-    ##      "getBandwith", "predict", "initFields", "getRefClass", "trace", 
-    ##      "field"
+    ##      "copy#envRefClass", "initialize", ".objectPackage", "callSuper", 
+    ##      "getDim", "copy", "getBandwith", "predict", "initFields", 
+    ##      "getRefClass", "trace", "field"
     ## 
     ## Reference Superclasses: 
     ##      "envRefClass"
@@ -139,14 +150,14 @@ plot(x0, y0[,3], main = "Second derivative")
 lines(x0, 3 * 4 * x0 ^ 2 - 2)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-10-1.png)<!-- -->
+![](README_files/figure-markdown_github/unnamed-chunk-13-1.png)<!-- -->
 
 #### Search tree approximation
 
 The reference class for search tree approximation to local polynomial regression is `covatree`
 
 ``` r
-getRefClass('covatree')
+methods::getRefClass('covatree')
 ```
 
     ## Generator for class "covatree":
@@ -160,9 +171,9 @@ getRefClass('covatree')
     ## 
     ## Class Methods: 
     ##      "import", ".objectParent", "usingMethods", "show", "getClass", 
-    ##      "untrace", "export", "initialize", ".objectPackage", "callSuper", 
-    ##      "getDim", "copy", "predict", "initFields", "getRefClass", "trace", 
-    ##      "field"
+    ##      "untrace", "export", "copy#envRefClass", "initialize", 
+    ##      ".objectPackage", "callSuper", "getDim", "copy", "predict", 
+    ##      "initFields", "getRefClass", "trace", "field"
     ## 
     ## Reference Superclasses: 
     ##      "envRefClass"
@@ -188,7 +199,7 @@ plot(x0, y1[,2], main = "First derivative")
 lines(x0, 4 * x0 ^ 3 - 2 * x0)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-13-1.png)<!-- -->
+![](README_files/figure-markdown_github/unnamed-chunk-16-1.png)<!-- -->
 
 ### Using with Rcpp/inline
 
@@ -228,7 +239,7 @@ fun <- cxxfunction(signature(x='numeric',
 fun(c(0),matrix(x,ncol=1),y,2,1.0)
 ```
 
-    ## [1] -0.06145929  0.01303353
+    ## [1] -0.04614941  0.01605094
 
 ### Using with TMB
 
@@ -287,28 +298,28 @@ obj <- MakeADFun(data = dat,
 obj$fn(c(3.2))
 ```
 
-    ## [1] 94.44116
+    ## [1] 94.7055
 
 ``` r
 obj$fn(c(0))
 ```
 
-    ## [1] -0.06145929
+    ## [1] -0.04614941
 
 ``` r
 obj$fn(c(-1))
 ```
 
-    ## [1] -0.08598952
+    ## [1] -0.04697095
 
 ``` r
 obj$gr()
 ```
 
-    ## outer mgc:  3.851352
+    ## outer mgc:  3.593036
 
     ##           [,1]
-    ## [1,] -3.851352
+    ## [1,] -3.593036
 
 ### Using with rjags
 
@@ -317,13 +328,6 @@ library(rjags)
 ```
 
     ## Loading required package: coda
-
-    ## 
-    ## Attaching package: 'coda'
-
-    ## Det følgende objekt er maskeret fra 'package:TMB':
-    ## 
-    ##     mcmc
 
     ## Linked to JAGS 4.0.0
 
@@ -392,4 +396,4 @@ plot(x,samp$cf[,1,1])
 hist(samp$sigma)
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-28-1.png)<!-- -->
+![](README_files/figure-markdown_github/unnamed-chunk-31-1.png)<!-- -->

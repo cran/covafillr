@@ -24,8 +24,7 @@ covatree <- setRefClass("covatree",
                         fields = list(ptr = "externalptr"),
                         methods = list(
 
-                            initialize = function(.Object,
-                                                  coord,
+                            initialize = function(coord,
                                                   obs,
                                                   h = 1.0, 
                                                   p = 2L,
@@ -71,6 +70,9 @@ covatree <- setRefClass("covatree",
 
                                 initFields(ptr = ptr0)
 
+                            },
+                            copy = function(shallow=FALSE){
+                                stop("A covatree object can not be copied.")
                             },
                             getDim = function(){
                                 "Get the dimension of the coordinates."
