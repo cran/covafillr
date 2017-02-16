@@ -7,11 +7,9 @@
 #' fn <- function(x) x ^ 4 - x ^ 2
 #' x <- runif(2000,-3,3)
 #' y <- fn(x) + rnorm(2000,0,0.1)
-#' cf <- covafill(coord = x,obs = y,h = 0.5,p = 3L)
+#' cf <- covafill(coord = x,obs = y,p = 5L)
 #' cf$getDim()
 #' cf$getDegree()
-#' cf$getBandwith()
-#' cf$setBandwith(1.0)
 #' cf$getBandwith()
 #' x0 <- seq(-1,1,0.1)
 #' y0 <- cf$predict(x0)
@@ -22,6 +20,8 @@
 #' lines(x0, 4 * x0 ^ 3 - 2 * x0)
 #' plot(x0, y0[,3], main = "Second derivative")
 #' lines(x0, 3 * 4 * x0 ^ 2 - 2)
+#' cf$setBandwith(1.0)
+#' cf$getBandwith()
 #' 
 #' @export covafill
 #' @importFrom methods setRefClass new 
@@ -32,8 +32,8 @@ covafill <- setRefClass("covafill",
 
                             initialize = function(coord,
                                                   obs,
-                                                  h = 1.0,
-                                                  p = 2L,
+                                                  h = suggestBandwith(coord,p),
+                                                  p = 3L,
                                                   ...){
                                 "Method to initialize the covafill. coord is a matrix of coordinates, obs is a vector of corresponding observations, h is a vector of bandwiths, and p is the polynomial degree."
                                 ## Check input
@@ -63,8 +63,8 @@ covafill <- setRefClass("covafill",
 
                                 p <- as.integer(p)
 
-                                if(p < 1)
-                                    stop("p must be 1 or greater")
+                                if(p < -1)
+                                    stop("p must be -1 or greater")
 
                                 ## Create pointer
                                 ptr0 <- .Call("MakeFill",coord,obs,h,p,
@@ -107,27 +107,29 @@ covafill <- setRefClass("covafill",
 
                                 cnamfin <- character(nest)
                                 cnamfin[1] <- 'fn'
-                                cnamfin[2:(1+d)] <- paste('gr',cnam,sep='_')
+                                
+                                if(p >= 1){
+                                    cnamfin[2:(1+d)] <- paste('gr',cnam,sep='_')
 
-                                if(p >= 2){
-                                    cn2 <- unlist(sapply(1:d,function(i)
-                                        paste(cnam[i],cnam[i:d],sep='_')))
-                                    cnamfin[(2+d):(2+d+length(cn2)-1)] <- paste('gr',
-                                                                              cn2,
-                                                                              sep='_')
+                                    if(p >= 2){
+                                        cn2 <- unlist(sapply(1:d,function(i)
+                                            paste(cnam[i],cnam[i:d],sep='_')))
+                                        cnamfin[(2+d):(2+d+length(cn2)-1)] <- paste('gr',
+                                                                                    cn2,
+                                                                                    sep='_')
+                                    }
+                                    if(p > 2){
+                                        cnK <- as.vector(sapply(3:p,
+                                                                function(k)
+                                                                    unlist(sapply(1:d,
+                                                                                  function(j)
+                                                                                      paste(rep(cnam[j],k),collapse='_')
+                                                                                  ))
+                                                                ))
+                                        cnamfin[tail(1:length(cnamfin),
+                                                     length(cnK))] <- paste('gr',cnK,sep='_')
+                                    }
                                 }
-                                if(p > 2){
-                                    cnK <- as.vector(sapply(3:p,
-                                                  function(k)
-                                                      unlist(sapply(1:d,
-                                                             function(j)
-                                                                 paste(rep(cnam[j],k),collapse='_')
-                                                             ))
-                                                  ))
-                                    cnamfin[tail(1:length(cnamfin),
-                                                 length(cnK))] <- paste('gr',cnK,sep='_')
-                                }
-
 
                                 if(is.null(rownames(coord))){
                                     rnam <- 1:dim(coord)[1]

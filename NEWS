@@ -1,5 +1,17 @@
 Covafillr News
 
+CHANGES IN VERSION 0.4.0
+
+	NEW FEATURES:
+	    - added stat_covafill to be used with the ggplot2 package
+	    - added kde function for kernel density estimates
+	    - added suggestBandwith function
+
+	OTHER CHANGES:
+	    - Changed calculations of standard deviations to follow Fan and Gijbels (1995)
+	    - Now possible to have polynomial degree < 1
+	    - Changed default polynomial degree to 3
+	    - Small changes to C++: Added destructors to tree methods; now registers routines; fixed pedantic warnings
 
 CHANGES IN VERSION 0.3.0
 

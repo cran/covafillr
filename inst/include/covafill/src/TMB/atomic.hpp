@@ -52,7 +52,7 @@ CppAD::vector<double> evalFill(CppAD::vector<double> tx, const covafill<double> 
     // The first index from the operator is the function value
     ty[0] = cf.operator()(tx)[0];
     return ty;								
-  });
+  })
 
 /*! 
  * \overload
@@ -64,7 +64,7 @@ CppAD::vector<Type> evalFill(CppAD::vector<Type> tx,const covafill<AD<Type> > &c
     // The first index from the operator is the function value
     ty[0] = CppAD::Value(cf.operator()(tx)[0]);
      return ty;								
-  };
+}
  
 
 /** \brief CppAD atomic class to use estimated derivatives in automatic differentiation. See CppAD::atomic_base for further documentation.
@@ -78,9 +78,10 @@ public:
   atomicEvalFill(const char* name,covafill<AD<Type> > cf_) : CppAD::atomic_base<Type>(name), cf(cf_){
     atomic::atomicFunctionGenerated = true;				
     if(config.trace.atomic)						
-    	std::cout << "Constructing atomic " << "evalFill" << "\n" ;	
+      std::cout << "Constructing atomic " << "evalFill" << "\n" ;	
     this->option(CppAD::atomic_base<Type>::bool_sparsity_enum);		
-  }									
+  }
+ 
 private:
   covafill<AD<Type> > cf;
 

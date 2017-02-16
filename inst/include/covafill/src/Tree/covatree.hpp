@@ -44,7 +44,7 @@
 template<typename scalartype_>
 class covatree {
 
-  DEFINE_TYPES(scalartype_);
+  DEFINE_TYPES(scalartype_)
   
 public:
 
@@ -78,6 +78,8 @@ public:
   covatree(scalartype minSplitSize_,
 	     covafill<scalartype>* cf);
 
+  /** \brief Destructor */
+  ~covatree();
   
   // Public functions
   /** \brief Get coordinate dimension.  */

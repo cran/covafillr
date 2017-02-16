@@ -22,7 +22,7 @@ A Reference Class for Local Polynomial Regression with covafill.
 
 \item{\code{getDim()}}{Get the dimension of the coordinates.}
 
-\item{\code{initialize(coord, obs, h = 1, p = 2L, ...)}}{Method to initialize the covafill. coord is a matrix of coordinates, obs is a vector of corresponding observations, h is a vector of bandwiths, and p is the polynomial degree.}
+\item{\code{initialize(coord, obs, h = suggestBandwith(coord, p), p = 3L, ...)}}{Method to initialize the covafill. coord is a matrix of coordinates, obs is a vector of corresponding observations, h is a vector of bandwiths, and p is the polynomial degree.}
 
 \item{\code{predict(coord, se.fit = FALSE)}}{Predict function value and derivatives with local polynomial regression at coord. If se.fit=TRUE a list is returned with estimates and their standard deviations.}
 
@@ -35,11 +35,9 @@ getRefClass('covafill')
 fn <- function(x) x ^ 4 - x ^ 2
 x <- runif(2000,-3,3)
 y <- fn(x) + rnorm(2000,0,0.1)
-cf <- covafill(coord = x,obs = y,h = 0.5,p = 3L)
+cf <- covafill(coord = x,obs = y,p = 5L)
 cf$getDim()
 cf$getDegree()
-cf$getBandwith()
-cf$setBandwith(1.0)
 cf$getBandwith()
 x0 <- seq(-1,1,0.1)
 y0 <- cf$predict(x0)
@@ -50,5 +48,7 @@ plot(x0, y0[,2], main = "First derivative")
 lines(x0, 4 * x0 ^ 3 - 2 * x0)
 plot(x0, y0[,3], main = "Second derivative")
 lines(x0, 3 * 4 * x0 ^ 2 - 2)
+cf$setBandwith(1.0)
+cf$getBandwith()
 }
 

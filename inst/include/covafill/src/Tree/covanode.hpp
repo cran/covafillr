@@ -35,7 +35,7 @@
 */
 template<typename scalartype_>
 class covanode {
-  DEFINE_TYPES(scalartype_);
+  DEFINE_TYPES(scalartype_)
 
 public:
 
@@ -52,6 +52,8 @@ public:
 	     covafill<scalartype>* cf,
 	     vectortype minCoords,
 	     vectortype maxCoords);
+
+  ~covanode();
 
   /** \brief Get coordinate dimension.  */
   int getDim();
