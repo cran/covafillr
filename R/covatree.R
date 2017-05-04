@@ -21,7 +21,7 @@
 #' @importFrom methods setRefClass new
 #' @exportClass covatree
 covatree <- setRefClass("covatree",
-                        fields = list(ptr = "externalptr"),
+                        fields = list(ptr = "externalptr", data = "list"),
                         methods = list(
 
                             initialize = function(coord,
@@ -65,19 +65,24 @@ covatree <- setRefClass("covatree",
                                     stop("p must be 1 or greater")
 
                                 ## Create pointer
-                                ptr0 <- .Call("MakeTree",coord,obs,h,p,minLeft,
-                                              PACKAGE="covafillr")
+                                ptr0 <- .Call(C_MakeTree,coord,obs,h,p,minLeft)
 
-                                initFields(ptr = ptr0)
+                                initFields(ptr = ptr0,
+                                           data = list(coord=coord,
+                                                       obs=obs,
+                                                       h=h,
+                                                       p=p,
+                                                       minLeft=minLeft))
 
                             },
                             copy = function(shallow=FALSE){
-                                stop("A covatree object can not be copied.")
+                                if(shallow)
+                                    stop("covatree only allows non-shallow copy")
+                                do.call("covatree",.self$data)
                             },
                             getDim = function(){
                                 "Get the dimension of the coordinates."
-                                return(.Call("getTreeDim",.self$ptr,
-                                              PACKAGE="covafillr"))
+                                return(.Call(C_getTreeDim,.self$ptr))
                             },
                             predict = function(coord){
                                 "Predict function value and first order derivatives with search tree approximated local polynomial regression at coord."
@@ -89,8 +94,7 @@ covatree <- setRefClass("covatree",
                                 if(dim(coord)[2] != d)
                                     stop(paste("coord must have",d,"columns."))
 
-                                val <- .Call("predictTree",.self$ptr,coord,
-                                             PACKAGE="covafillr")
+                                val <- .Call(C_predictTree,.self$ptr,coord)
 
                                 if(is.null(colnames(coord))){
                                     cnam <- 1:d
@@ -110,7 +114,18 @@ covatree <- setRefClass("covatree",
 
                                 
                                 return(val)
+                            },
+                            show = function(){
+                                cat("\ncovatree Local Polynomial Regression Search Tree Approximation Object\n\n")
+                                cat("\nPolynomial degree:",.self$data$p,"\n")
+                                cat("\nBandwith:",.self$data$h,"\n")
+                                cat("\nSplit size:",.self$data$minLeft,"\n")
+                                cat("\nCoordinates used:\n")
+                                print(summary(.self$data$coord))
+                                cat("\nObservations used:\n")
+                                print(summary(.self$data$obs))
+                                invisible(.self$data)
                             }                            
                         )
                         )
-covatree$lock("ptr")
+covatree$lock("ptr","data")

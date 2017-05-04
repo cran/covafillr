@@ -26,6 +26,7 @@
 #' @export covafill
 #' @importFrom methods setRefClass new 
 #' @exportClass covafill
+#' @useDynLib covafillr, .registration = TRUE, .fixes = "C_"
 covafill <- setRefClass("covafill",
                         fields = list(ptr = "externalptr"),
                         methods = list(
@@ -67,14 +68,20 @@ covafill <- setRefClass("covafill",
                                     stop("p must be -1 or greater")
 
                                 ## Create pointer
-                                ptr0 <- .Call("MakeFill",coord,obs,h,p,
-                                              PACKAGE="covafillr")
+                                ptr0 <- .Call(C_MakeFill,coord,obs,h,p)
 
                                 initFields(ptr = ptr0)
 
                             },
                             copy = function(shallow=FALSE){
-                                stop("A covafill object can not be copied.")
+                                ##stop("A covafill object can not be copied.")
+                                if(shallow)
+                                    stop("covafill only allows non-shallow copy")
+                                obs <- .Call(C_getFillObservations,.self$ptr)
+                                coord <- .Call(C_getFillCoordinates,.self$ptr)
+                                bw <- .self$getBandwith()
+                                p <- .self$getDegree()
+                                do.call("covafill",list(h=bw,p=p,obs=obs,coord=coord))
                             },
                             predict = function(coord, se.fit=FALSE){
                                 "Predict function value and derivatives with local polynomial regression at coord. If se.fit=TRUE a list is returned with estimates and their standard deviations."
@@ -89,12 +96,10 @@ covafill <- setRefClass("covafill",
                                     stop(paste("coord must have",d,"columns."))
 
                                 if(se.fit){
-                                    val <- .Call("predictFillSE",.self$ptr,coord,
-                                                 PACKAGE="covafillr")
+                                    val <- .Call(C_predictFillSE,.self$ptr,coord)
                                     val[[2]] <- sqrt(val[[2]])
                                 }else{
-                                    val <- .Call("predictFill",.self$ptr,coord,
-                                                 PACKAGE="covafillr")
+                                    val <- .Call(C_predictFill,.self$ptr,coord)
                                 }
 
                                 nest <- ifelse(se.fit,dim(val[[1]])[2],dim(val)[2])
@@ -153,23 +158,19 @@ covafill <- setRefClass("covafill",
                                 "Get 'leave-neighborhood-out' residuals, i.e. local polynomial regression predictions excluding points within excludeRadius subtracted from the observation." 
                                 if(!is.numsca(excludeRadius))
                                     stop("excludeRadius must be a numeric scalar")
-                                return(.Call("lnoResiduals",.self$ptr,excludeRadius,
-                                              PACKAGE="covafillr"))
+                                return(.Call(C_lnoResiduals,.self$ptr,excludeRadius))
                             },
                             getDim = function(){
                                 "Get the dimension of the coordinates."
-                                return(.Call("getFillDim",.self$ptr,
-                                              PACKAGE="covafillr"))
+                                return(.Call(C_getFillDim,.self$ptr))
                             },
                             getDegree = function(){
                                 "Get the polynomial degree."
-                                return(.Call("getFillDegree",.self$ptr,
-                                              PACKAGE="covafillr"))
+                                return(.Call(C_getFillDegree,.self$ptr))
                             },
                             getBandwith = function(){
                                 "Get the bandwith."
-                                return(.Call("getFillBandwith",.self$ptr,
-                                              PACKAGE="covafillr"))
+                                return(.Call(C_getFillBandwith,.self$ptr))
                             },
                             setBandwith = function(h){
                                 "Set the bandwith to h."
@@ -177,9 +178,22 @@ covafill <- setRefClass("covafill",
                                 if(length(h) > d)
                                     warning("Additional bandwiths are ignored.")
                                 h <- rep(h,len = d)
-                                return(.Call("setFillBandwith",.self$ptr,h,
-                                              PACKAGE="covafillr"))
+                                return(.Call(C_setFillBandwith,.self$ptr,h))
+                            },
+                            show = function(){
+                                cat("\ncovafill Local Polynomial Regression Object\n\n")
+                                obs <- .Call(C_getFillObservations,.self$ptr)
+                                coord <- .Call(C_getFillCoordinates,.self$ptr)
+                                bw <- .self$getBandwith()
+                                p <- .self$getDegree()
+                                cat("\nPolynomial degree:",p,"\n")
+                                cat("\nBandwith:",bw,"\n")
+                                cat("\nCoordinates used:\n")
+                                print(summary(coord))
+                                cat("\nObservations used:\n")
+                                print(summary(obs))
+                                invisible(list(h=bw,p=p,obs=obs,coord=coord))
                             }
-                            )
+                        )
                         )
 covafill$lock("ptr")
