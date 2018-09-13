@@ -59,13 +59,12 @@ protected:
   int dim; /**< Dimension of coordinates, i.e., the n in n-cubic. */
   vectortype minCoord; /**< Minimum coordinates of boundary box. */
   vectortype maxCoord; /**< maximum coordinates of boundary box. */
+  virtual ~ncubicInterpolation();
 
 private:
 
   ncubicInterpolation<scalartype>* minChild;
   ncubicInterpolation<scalartype>* maxChild;
-
-
 
 };
 
@@ -79,6 +78,12 @@ ncubicInterpolation<scalartype_>::ncubicInterpolation(vectortype minCoord_,
 {
   minChild = NULL;
   maxChild = NULL;
+}
+
+template<typename scalartype_>
+ncubicInterpolation<scalartype_>::~ncubicInterpolation(){
+  delete minChild;
+  delete maxChild;
 }
 
   template<typename scalartype_>

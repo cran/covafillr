@@ -1,3 +1,9 @@
+#define EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
+
+#define R_NO_REMAP
+
+#include <Rinternals.h>
+
 #include <covafill/Core>
 #include <covafill/Tree>
 #include "utils/convert.hpp"
@@ -35,8 +41,14 @@ extern "C" {
        so pass those arrays as NULL.
     */
     R_registerRoutines(info,
-		       NULL, callMethods,
-		       NULL, NULL);
-    R_useDynamicSymbols(info, (Rboolean)FALSE);
+  		       NULL, callMethods,
+  		       NULL, NULL);
+    R_useDynamicSymbols(info, FALSE);
+    R_forceSymbols(info,TRUE);
+  }
+
+  void R_unload_covafillr(DllInfo *info)
+  {
+
   }
 }
